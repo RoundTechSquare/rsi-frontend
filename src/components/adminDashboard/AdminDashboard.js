@@ -1,24 +1,25 @@
-import React from 'react';
-import logo from '../../logo.svg';
-import './AdminDashboard.css';
-import fetch from 'node-fetch';
-import { Redirect } from 'react-router-dom';
-import 'react-input-range/lib/css/index.css';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import 'react-tabs/style/react-tabs.css';
-import socketIOClient from 'socket.io-client';
-import Cookies from 'js-cookie';
-import BellIcon from 'react-bell-icon';
+import React from "react";
+import logo from "../../logo.svg";
+import "./AdminDashboard.css";
+import fetch from "node-fetch";
+import { Redirect } from "react-router-dom";
+import "react-input-range/lib/css/index.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
+import "react-tabs/style/react-tabs.css";
+import socketIOClient from "socket.io-client";
+import Cookies from "js-cookie";
+import BellIcon from "react-bell-icon";
+import moment from "moment";
 
-const TIMEFRAMES = ['60min', '4h', '1d', '1w'];
+const TIMEFRAMES = ["60min", "4h", "1d", "1w"];
 
 class AdminDashboard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedTab: '60min',
+      selectedTab: "60min",
       bellActive: false,
       redirect: false,
       verified: false,
@@ -27,8 +28,9 @@ class AdminDashboard extends React.Component {
         volume: { min: 1, max: 1000000, on: false },
         float: { min: 1, max: 1000000, on: false },
       },
+      tabData: [],
       filters: {
-        '60min': {
+        "60min": {
           marketCap: {
             min: 50,
             max: 100,
@@ -42,7 +44,7 @@ class AdminDashboard extends React.Component {
             max: 2,
           },
         },
-        '4h': {
+        "4h": {
           marketCap: {
             min: 50,
             max: 100,
@@ -56,7 +58,7 @@ class AdminDashboard extends React.Component {
             max: 2,
           },
         },
-        '1d': {
+        "1d": {
           marketCap: {
             min: 50,
             max: 100,
@@ -70,7 +72,7 @@ class AdminDashboard extends React.Component {
             max: 2,
           },
         },
-        '1w': {
+        "1w": {
           marketCap: {
             min: 50,
             max: 100,
@@ -84,7 +86,7 @@ class AdminDashboard extends React.Component {
             max: 2,
           },
         },
-        '1m': {
+        "1m": {
           marketCap: {
             min: 50,
             max: 100,
@@ -98,7 +100,7 @@ class AdminDashboard extends React.Component {
             max: 2,
           },
         },
-        '3m': {
+        "3m": {
           marketCap: {
             min: 50,
             max: 100,
@@ -114,16 +116,16 @@ class AdminDashboard extends React.Component {
         },
       },
       history: {
-        '60min': {},
-        '4h': {},
-        '1d': {},
-        '1w': {},
-        '3m': {},
-        '1m': {},
+        "60min": {},
+        "4h": {},
+        "1d": {},
+        "1w": {},
+        "3m": {},
+        "1m": {},
       },
       sortingDescending: true,
       alerts: [],
-      alertsCfopy: [],
+      alertsCopy: [],
       showNotifications: false,
       selectedDate: new Date(),
     };
@@ -233,24 +235,20 @@ class AdminDashboard extends React.Component {
   }
 
   setSortedField(key) {
-    const selectedDate = this.state.selectedDate;
-    const formattedDate =
-      selectedDate.getDate() +
-      '-' +
-      (selectedDate.getMonth() + 1) +
-      '-' +
-      selectedDate.getFullYear();
+    // const selectedDate = this.state.selectedDate;
+    const formattedDate = moment(this.state.selectedDate).format('DD-MM-yyyy')
+
 
     let sorted = this.state.history[this.state.selectedTab][formattedDate];
     let history = this.state.history;
     sorted.sort((a, b) => {
       if (a[key]) {
-        if (b[key])
-          if (key === 'date')
+        if (b[key])  
+          if (key === "date")
             return (
               parseFloat(Date.parse(a[key])) - parseFloat(Date.parse(b[key]))
             );
-          else if (key === 'type' || key === 'ticker') {
+          else if (key === "type" || key === "ticker") {
             if (a[key] < b[key]) return -1;
             else if (a[key] > b[key]) return 1;
           } else return parseFloat(a[key]) - parseFloat(b[key]);
@@ -274,22 +272,22 @@ class AdminDashboard extends React.Component {
   updateAlertComment(timeframe, date, ticker, alertDate, index) {
     fetch(
       window.location.protocol +
-        '//' +
+        "//" +
         window.location.hostname +
-        ':' +
+        ":" +
         window.location.port +
-        '/api/admin/scanner/stocks/updateComment?timeframe=' +
+        "/api/admin/scanner/stocks/updateComment?timeframe=" +
         timeframe +
-        '&date=' +
+        "&date=" +
         date +
-        '&ticker=' +
+        "&ticker=" +
         ticker +
-        '&alertDate=' +
+        "&alertDate=" +
         alertDate,
       {
-        method: 'post',
+        method: "post",
         body: JSON.stringify(this.state.history[timeframe][date][index]),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
@@ -301,8 +299,8 @@ class AdminDashboard extends React.Component {
   }
   handleMarketCapMinFilterChange(value) {
     let filters = this.state.filters;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filters[this.state.selectedTab].marketCap.min = parseInt(
       value.target.value
@@ -314,8 +312,8 @@ class AdminDashboard extends React.Component {
   }
   handleMarketCapMaxFilterChange(value) {
     let filters = this.state.filters;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filters[this.state.selectedTab].marketCap.max = parseInt(
       value.target.value
@@ -328,8 +326,8 @@ class AdminDashboard extends React.Component {
 
   handleVolumeMinFilterChange(value) {
     let filters = this.state.filters;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filters[this.state.selectedTab].volume.min = parseInt(value.target.value);
     this.setState({
@@ -339,8 +337,8 @@ class AdminDashboard extends React.Component {
   }
   handleVolumeMaxFilterChange(value) {
     let filters = this.state.filters;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filters[this.state.selectedTab].volume.max = parseInt(value.target.value);
     this.setState({
@@ -351,8 +349,8 @@ class AdminDashboard extends React.Component {
 
   handlePriceMinFilterChange(value) {
     let filters = this.state.filters;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filters[this.state.selectedTab].price.min = parseInt(value.target.value);
     this.setState({
@@ -362,8 +360,8 @@ class AdminDashboard extends React.Component {
   }
   handlePriceMaxFilterChange(value) {
     let filters = this.state.filters;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filters[this.state.selectedTab].price.max = parseInt(value.target.value);
     this.setState({
@@ -374,8 +372,8 @@ class AdminDashboard extends React.Component {
 
   handleFloatMinFilterChange(value) {
     let filters = this.state.filters;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filters[this.state.selectedTab].float.min = parseInt(value.target.value);
     this.setState({
@@ -385,8 +383,8 @@ class AdminDashboard extends React.Component {
   }
   handleFloatMaxFilterChange(value) {
     let filters = this.state.filters;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filters[this.state.selectedTab].float.max = parseInt(value.target.value);
     this.setState({
@@ -397,8 +395,8 @@ class AdminDashboard extends React.Component {
 
   handleFloatMinFilterChangeResult(value) {
     let filtersResult = this.state.filtersResult;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filtersResult.float.min = parseInt(value.target.value);
     this.setState({
@@ -408,8 +406,8 @@ class AdminDashboard extends React.Component {
   }
   handleFloatMaxFilterChangeResult(value) {
     let filtersResult = this.state.filtersResult;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filtersResult.float.max = parseInt(value.target.value);
     this.setState({
@@ -419,8 +417,8 @@ class AdminDashboard extends React.Component {
   }
   handleVolumeMinFilterChangeResult(value) {
     let filtersResult = this.state.filtersResult;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filtersResult.volume.min = parseInt(value.target.value);
     this.setState({
@@ -430,8 +428,8 @@ class AdminDashboard extends React.Component {
   }
   handleVolumeMaxFilterChangeResult(value) {
     let filtersResult = this.state.filtersResult;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filtersResult.volume.max = parseInt(value.target.value);
     this.setState({
@@ -442,8 +440,8 @@ class AdminDashboard extends React.Component {
 
   handlePriceMinFilterChangeResult(value) {
     let filtersResult = this.state.filtersResult;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filtersResult.price.min = parseInt(value.target.value);
     this.setState({
@@ -453,8 +451,8 @@ class AdminDashboard extends React.Component {
   }
   handlePriceMaxFilterChangeResult(value) {
     let filtersResult = this.state.filtersResult;
-    if (value.target.value === '') {
-      value.target.value = '0';
+    if (value.target.value === "") {
+      value.target.value = "0";
     }
     filtersResult.price.max = parseInt(value.target.value);
     this.setState({
@@ -467,16 +465,16 @@ class AdminDashboard extends React.Component {
     event.preventDefault();
     fetch(
       window.location.protocol +
-        '//' +
+        "//" +
         window.location.hostname +
-        ':' +
+        ":" +
         window.location.port +
-        '/api/admin/scanner/filters/update?timeframe=' +
+        "/api/admin/scanner/filters/update?timeframe=" +
         this.state.selectedTab,
       {
-        method: 'post',
+        method: "post",
         body: JSON.stringify(this.state.filters[this.state.selectedTab]),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
@@ -484,11 +482,10 @@ class AdminDashboard extends React.Component {
   updateFiltersResult(event) {
     event.preventDefault();
     const alerts = this.state.alertsCopy;
-    console.log(alerts);
     let filters = this.state.filtersResult;
     let newAlerts = {};
 
-    for (let i = 0; i < Object.keys(alerts).length; i++) {
+    for (let i = 0; i < Object.keys(alerts).length; i++) {    
       const timeframe = alerts[Object.keys(alerts)[i]];
       newAlerts[Object.keys(alerts)[i]] = {};
       for (let y = 0; y < Object.keys(timeframe).length; y++) {
@@ -519,16 +516,45 @@ class AdminDashboard extends React.Component {
 
   renderRedirect() {
     if (this.state.redirect) {
-      return <Redirect to='/login' />;
+      return <Redirect to="/login" />;
     }
   }
 
   async getData(params) {
     const data = await fetch(`http://iodigitalbot.com/api/data?tf=${params}`);
     const result = await data.json();
+    // console.log(result, this.state.history);
+    // this gives an object with dates as keys
+    const groups = result.reduce((groups, game) => {
+      // console.log(groups,game)
+      let date = moment(game.date).format("DD-MM-yyyy");
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(game);
+      return groups;
+    }, {});
+
+    // Edit: to add it in the array format instead
+    const groupArrays = Object.keys(groups).map((date) => {
+      return {
+        date,
+        data: groups[date],
+      };
+    });
+    console.log(groupArrays)
+    let updatedHistory = []
+    groupArrays.map((obj)=>{
+      if(obj !== "Invalid date"){
+        updatedHistory[`${obj.date}`] = obj.data
+      }
+    })
+    this.state.history[params] = updatedHistory;
     this.setState({
       ...this.state,
-      alerts: result,
+      alerts: this.state.history,
+      alertsCopy: this.state.history,
+
     });
   }
   render() {
@@ -536,7 +562,7 @@ class AdminDashboard extends React.Component {
     let notificationsList;
     if (this.state.showNotifications) {
       notificationsList = (
-        <section className='notificationsList'>
+        <section className="notificationsList">
           <h2>Notifications:</h2>
           {this.state.alerts.map((alert, index) => {
             return (
@@ -563,31 +589,31 @@ class AdminDashboard extends React.Component {
       );
     }
     return (
-      <section className='container'>
+      <section className="container">
         {redirect}
-        <div className='heading'>
-          <h1 className='adminDashboardTitle'>Admin Dashboard</h1>
+        <div className="heading">
+          <h1 className="adminDashboardTitle">Admin Dashboard</h1>
           <BellIcon
-            className='bellIcon'
+            className="bellIcon"
             onClick={() => {
               this.setState({
                 ...this.state,
                 showNotifications: !this.state.showNotifications,
               });
             }}
-            width='40'
+            width="40"
             active={this.state.bellActive}
             animate={this.state.bellActive}
           />
           {notificationsList}
         </div>
         <form onSubmit={this.updateFilters}>
-          <div className='allFiltersContainer'>
-            <section className='filtersSection'>
+          <div className="allFiltersContainer">
+            <section className="filtersSection">
               <label>
                 <span>Min Market Captialisation</span>
                 <input
-                  type='number'
+                  type="number"
                   max={this.state.filters[this.state.selectedTab].marketCap.max}
                   value={
                     this.state.filters[this.state.selectedTab].marketCap.min
@@ -598,7 +624,7 @@ class AdminDashboard extends React.Component {
               <label>
                 <span>Max Market Captialisation</span>
                 <input
-                  type='number'
+                  type="number"
                   min={this.state.filters[this.state.selectedTab].marketCap.min}
                   value={
                     this.state.filters[this.state.selectedTab].marketCap.max
@@ -608,11 +634,11 @@ class AdminDashboard extends React.Component {
               </label>
             </section>
 
-            <section className='filtersSection'>
+            <section className="filtersSection">
               <label>
                 <span>Min Average Volume</span>
                 <input
-                  type='number'
+                  type="number"
                   max={this.state.filters[this.state.selectedTab].volume.max}
                   value={this.state.filters[this.state.selectedTab].volume.min}
                   onChange={this.handleVolumeMinFilterChange}
@@ -621,7 +647,7 @@ class AdminDashboard extends React.Component {
               <label>
                 <span>Max Average Volume</span>
                 <input
-                  type='number'
+                  type="number"
                   min={this.state.filters[this.state.selectedTab].volume.min}
                   value={this.state.filters[this.state.selectedTab].volume.max}
                   onChange={this.handleVolumeMaxFilterChange}
@@ -629,11 +655,11 @@ class AdminDashboard extends React.Component {
               </label>
             </section>
 
-            <section className='filtersSection'>
+            <section className="filtersSection">
               <label>
                 <span>Min Price</span>
                 <input
-                  type='number'
+                  type="number"
                   max={this.state.filters[this.state.selectedTab].price.max}
                   value={this.state.filters[this.state.selectedTab].price.min}
                   onChange={this.handlePriceMinFilterChange}
@@ -642,7 +668,7 @@ class AdminDashboard extends React.Component {
               <label>
                 <span>Max Price</span>
                 <input
-                  type='number'
+                  type="number"
                   min={this.state.filters[this.state.selectedTab].price.min}
                   value={this.state.filters[this.state.selectedTab].price.max}
                   onChange={this.handlePriceMaxFilterChange}
@@ -650,11 +676,11 @@ class AdminDashboard extends React.Component {
               </label>
             </section>
 
-            <section className='filtersSection'>
+            <section className="filtersSection">
               <label>
                 <span>Min Float</span>
                 <input
-                  type='number'
+                  type="number"
                   max={this.state.filters[this.state.selectedTab].float?.max}
                   value={this.state.filters[this.state.selectedTab].float?.min}
                   onChange={this.handleFloatMinFilterChange}
@@ -663,7 +689,7 @@ class AdminDashboard extends React.Component {
               <label>
                 <span>Max Float</span>
                 <input
-                  type='number'
+                  type="number"
                   min={this.state.filters[this.state.selectedTab].float?.min}
                   value={this.state.filters[this.state.selectedTab].float?.max}
                   onChange={this.handleFloatMaxFilterChange}
@@ -672,24 +698,24 @@ class AdminDashboard extends React.Component {
             </section>
           </div>
 
-          <button className='updateFiltersButton' type='submit'>
+          <button className="updateFiltersButton" type="submit">
             Update filters
           </button>
         </form>
         <form onSubmit={this.updateFiltersResult}>
-          <div className='allFiltersContainer'>
-            <section className='filtersSection'>
+          <div className="allFiltersContainer">
+            <section className="filtersSection">
               <label>
                 <span>Enable filtering alerts by float</span>
                 <input
-                  type='checkbox'
+                  type="checkbox"
                   onClick={this.handleVolumeCheckboxChangeResult}
                 />
               </label>
               <label>
                 <span>Min Float</span>
                 <input
-                  type='number'
+                  type="number"
                   max={this.state.filtersResult.float.max}
                   value={this.state.filtersResult.float.min}
                   onChange={this.handleFloatMinFilterChangeResult}
@@ -698,25 +724,25 @@ class AdminDashboard extends React.Component {
               <label>
                 <span>Max Float</span>
                 <input
-                  type='number'
+                  type="number"
                   min={this.state.filtersResult.float.min}
                   value={this.state.filtersResult.float.max}
                   onChange={this.handleFloatMaxFilterChangeResult}
                 ></input>
               </label>
             </section>
-            <section className='filtersSection'>
+            <section className="filtersSection">
               <label>
                 <span>Enable filtering alerts by volume</span>
                 <input
-                  type='checkbox'
+                  type="checkbox"
                   onClick={this.handleVolumeCheckboxChangeResult}
                 />
               </label>
               <label>
                 <span>Min Average Volume</span>
                 <input
-                  type='number'
+                  type="number"
                   max={this.state.filtersResult.volume.max}
                   value={this.state.filtersResult.volume.min}
                   onChange={this.handleVolumeMinFilterChangeResult}
@@ -725,7 +751,7 @@ class AdminDashboard extends React.Component {
               <label>
                 <span>Max Average Volume</span>
                 <input
-                  type='number'
+                  type="number"
                   min={this.state.filtersResult.volume.min}
                   value={this.state.filtersResult.volume.max}
                   onChange={this.handleVolumeMaxFilterChangeResult}
@@ -733,18 +759,18 @@ class AdminDashboard extends React.Component {
               </label>
             </section>
 
-            <section className='filtersSection'>
+            <section className="filtersSection">
               <label>
                 <span>Enable filtering alerts by price</span>
                 <input
-                  type='checkbox'
+                  type="checkbox"
                   onClick={this.handlePriceCheckboxChangeResult}
                 />
               </label>
               <label>
                 <span>Min Price</span>
                 <input
-                  type='number'
+                  type="number"
                   max={this.state.filtersResult.price.max}
                   value={this.state.filtersResult.price.min}
                   onChange={this.handlePriceMinFilterChangeResult}
@@ -753,7 +779,7 @@ class AdminDashboard extends React.Component {
               <label>
                 <span>Max Price</span>
                 <input
-                  type='number'
+                  type="number"
                   min={this.state.filtersResult.price.min}
                   value={this.state.filtersResult.price.max}
                   onChange={this.handlePriceMaxFilterChangeResult}
@@ -762,13 +788,13 @@ class AdminDashboard extends React.Component {
             </section>
           </div>
 
-          <button className='updateFiltersButton' type='submit'>
+          <button className="updateFiltersButton" type="submit">
             Update filters
           </button>
 
           <button
-            type='reset'
-            className='updateFiltersButton'
+            type="reset"
+            className="updateFiltersButton"
             onClick={this.clearFiltersResult}
           >
             Clear alerts filters
@@ -790,18 +816,22 @@ class AdminDashboard extends React.Component {
           >
             <TabList>
               {Object.keys(this.state.history).map((timeframe) => {
-                return <Tab key={timeframe}>{timeframe}</Tab>;
+                return (
+                  <Tab
+                    onClick={() => {
+                      this.getData(timeframe);
+                    }}
+                    key={timeframe}
+                  >
+                    {timeframe}
+                  </Tab>
+                );
               })}
             </TabList>
 
             {Object.values(this.state.history).map(
               (objects, timeframeIndex) => {
-                const formattedDate =
-                  this.state.selectedDate.getDate() +
-                  '-' +
-                  parseInt(this.state.selectedDate.getMonth() + 1) +
-                  '-' +
-                  this.state.selectedDate.getFullYear();
+                const formattedDate = moment(this.state.selectedDate).format('DD-MM-yyyy')
                 if (!objects[formattedDate]) {
                   return (
                     <TabPanel key={timeframeIndex}>
@@ -811,46 +841,46 @@ class AdminDashboard extends React.Component {
                 }
                 return (
                   <TabPanel key={timeframeIndex}>
-                    <table className='alertsTable'>
+                    <table className="alertsTable">
                       <thead>
                         <tr>
                           <th>
                             <button
-                              type='button'
-                              onClick={() => this.setSortedField('date')}
+                              type="button"
+                              onClick={() => this.setSortedField("date")}
                             >
                               Time
                             </button>
                           </th>
                           <th>
                             <button
-                              type='button'
-                              onClick={() => this.setSortedField('type')}
+                              type="button"
+                              onClick={() => this.setSortedField("type")}
                             >
                               Signal
                             </button>
                           </th>
                           <th>
                             <button
-                              type='button'
-                              onClick={() => this.setSortedField('ticker')}
+                              type="button"
+                              onClick={() => this.setSortedField("ticker")}
                             >
                               Symbol
                             </button>
                           </th>
                           <th>
                             <button
-                              type='button'
-                              onClick={() => this.setSortedField('price')}
+                              type="button"
+                              onClick={() => this.setSortedField("price")}
                             >
                               Price
                             </button>
                           </th>
                           <th>
                             <button
-                              type='button'
+                              type="button"
                               onClick={() =>
-                                this.setSortedField('averageVolume')
+                                this.setSortedField("averageVolume")
                               }
                             >
                               Volume
@@ -858,22 +888,22 @@ class AdminDashboard extends React.Component {
                           </th>
                           <th>
                             <button
-                              type='button'
-                              onClick={() => this.setSortedField('date')}
+                              type="button"
+                              onClick={() => this.setSortedField("date")}
                             >
                               Float
                             </button>
                           </th>
                         </tr>
-                        {JSON.stringify(this.state)}
+                        {/* {JSON.stringify(this.state)} */}
                       </thead>
-                      <div>aas</div>
+                      {/* <div>aas</div> */}
                       <tbody>
                         {objects[formattedDate].map((alert, index) => {
                           let formattedAlertTime = new Date(alert.date);
                           formattedAlertTime =
                             formattedAlertTime.getHours() +
-                            ':' +
+                            ":" +
                             formattedAlertTime.getMinutes();
                           const timeframe = Object.keys(this.state.history)[
                             timeframeIndex
@@ -885,11 +915,11 @@ class AdminDashboard extends React.Component {
                               <td>Hidden {alert.type} divergence</td>
                               <td>
                                 <a
-                                  target='_blank'
+                                  target="_blank"
                                   href={
-                                    'https://www.tradingview.com/chart/?symbol=' +
+                                    "https://www.tradingview.com/chart/?symbol=" +
                                     alert.exchange +
-                                    ':' +
+                                    ":" +
                                     alert.ticker
                                   }
                                 >
@@ -902,8 +932,8 @@ class AdminDashboard extends React.Component {
                                   ? alert.averageVolume
                                       .toFixed(0)
                                       .toString()
-                                      .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                                  : ''}
+                                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                  : ""}
                               </td>
                               <td>{alert.float}</td>
                             </tr>
@@ -922,27 +952,27 @@ class AdminDashboard extends React.Component {
   }
 
   componentDidMount() {
-    document.title = 'Admin Dashboard - WhatsThisCrypto';
+    document.title = "Admin Dashboard - WhatsThisCrypto";
     const socket = socketIOClient(
-      'ws://' + window.location.hostname + ':3000',
+      "ws://" + window.location.hostname + ":3000",
       {
         query: {
-          token: Cookies.get('token'),
+          token: Cookies.get("token"),
         },
-        transport: ['websocket'],
+        transport: ["websocket"],
       }
     );
-    socket.on('connect', () => {
-      console.log('connected');
+    socket.on("connect", () => {
+      console.log("connected");
     });
-    socket.on('message', (alert) => {
+    socket.on("message", (alert) => {
       let history = this.state.history;
       let formattedDate = new Date();
       formattedDate =
         formattedDate.getDate() +
-        '-' +
+        "-" +
         parseInt(formattedDate.getMonth() + 1) +
-        '-' +
+        "-" +
         formattedDate.getFullYear();
       if (!history[alert.timeframe][formattedDate])
         history[alert.timeframe][formattedDate] = [];
@@ -951,7 +981,7 @@ class AdminDashboard extends React.Component {
         type: alert.type,
         exchange: alert.exchange,
         date: alert.date,
-        comment: '',
+        comment: "",
       });
       let alerts = this.state.alerts;
       alerts.push({
@@ -1027,7 +1057,8 @@ class AdminDashboard extends React.Component {
     //       });
     //   }
     // });
-    this.getData('60min');
+    this.getData("60min");
+    console.log("state", this.state);
   }
 }
 
