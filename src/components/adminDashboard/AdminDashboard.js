@@ -595,12 +595,12 @@ class AdminDashboard extends React.Component {
           <h1 className="adminDashboardTitle">Admin Dashboard</h1>
           <BellIcon
             className="bellIcon"
-            onClick={() => {
-              this.setState({
-                ...this.state,
-                showNotifications: !this.state.showNotifications,
-              });
-            }}
+            // onClick={() => {
+            //   this.setState({
+            //     ...this.state,
+            //     showNotifications: !this.state.showNotifications,
+            //   });
+            // }}
             width="40"
             active={this.state.bellActive}
             animate={this.state.bellActive}
