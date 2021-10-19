@@ -1,101 +1,177 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../../logo.svg";
 import "./AdminLogin.css";
 import fetch from "node-fetch";
 import {Redirect} from "react-router-dom";
 
-class CoinDescription extends React.Component {
-    constructor(props) {
-        super(props);
-        
-        this.state = {
+
+const CoinDescription = () =>{
+    const [state,setState] = useState({
             redirect: false,
             username: "",
             password: ""
-        }
-        this.handlePasswordChange = this.handlePasswordChange.bind(this);
-        this.handleUsernameChange = this.handleUsernameChange.bind(this);
-        this.login = this.login.bind(this);
-    }
+    })
 
-
-    renderRedirect() {
-        if (this.state.redirect) {
+   const renderRedirect = () => {
+        if (state.redirect) {
             //return <Redirect to="/admin/dashboard" />
             window.location.href = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/";
         }
     }
 
-    handleUsernameChange(event) {
-        this.setState({
-            ...this.state,
+    const handleUsernameChange =(event)=> {
+        setState({
+            ...state,
             username: event.target.value
         });
     }
 
-    handlePasswordChange(event) {
-        this.setState({
-            ...this.state,
+    const handlePasswordChange = (event) => {
+        setState({
+            ...state,
             password: event.target.value
         });
     }
+    useEffect(()=>{
+        document.title = "Admin Login - WhatsThisCrypto";
 
-    render() {
-        const redirect = this.renderRedirect();
-        return (
-            <section>
-                {redirect}
-                <form onSubmit={this.login}>
-                    <label>
-                        <span>Username</span>
-                        <input value={this.state.username} onChange={this.handleUsernameChange} type="text"></input>    
-                    </label>         
-                    <label>
-                        <span>Password</span>
-                        <input value={this.state.password} onChange={this.handlePasswordChange} type="text"></input>    
-                    </label> 
-                    <button type="submit">Login</button>          
-                </form>
-            </section>
-        );
-    }
-
-    login(event) {
+        fetch(window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/api/admin/ping")
+            .then(response => {
+                if(response.status === 200 && state.redirect !== true) {
+                    setState({
+                        ...state,
+                        redirect: true
+                    });
+                }
+            });
+    },[''])
+    const login = (event) => {
         event.preventDefault();
         fetch(window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/api/admin/login", {
             method: "POST",
             headers:{"content-type": "application/json"},
             body: JSON.stringify({
-                username: this.state.username,
-                password: this.state.password
+                username: state.username,
+                password: state.password
             })
         }).then(response => {
             if(response.status === 200) {
-                this.setState({
-                    ...this.state,
+                setState({
+                    ...state,
                     redirect: true
                 });
             }
         });
     }
+    return (
+        <section>
+            {/* {redirect} */}
+            <form onSubmit={login}>
+                <label>
+                    <span>Username</span>
+                    <input value={state.username} onChange={handleUsernameChange} type="text"></input>    
+                </label>         
+                <label>
+                    <span>Password</span>
+                    <input value={state.password} onChange={handlePasswordChange} type="text"></input>    
+                </label> 
+                <button type="submit">Login</button>          
+            </form>
+        </section>
+    );
+}
+// class CoinDescription extends React.Component {
+//     constructor(props) {
+//         super(props);
+        
+//         this.state = {
+//             redirect: false,
+//             username: "",
+//             password: ""
+//         }
+//         this.handlePasswordChange = this.handlePasswordChange.bind(this);
+//         this.handleUsernameChange = this.handleUsernameChange.bind(this);
+//         this.login = this.login.bind(this);
+//     }
+
+
+//     renderRedirect() {
+//         if (this.state.redirect) {
+//             //return <Redirect to="/admin/dashboard" />
+//             window.location.href = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/";
+//         }
+//     }
+
+//     handleUsernameChange(event) {
+//         this.setState({
+//             ...this.state,
+//             username: event.target.value
+//         });
+//     }
+
+//     handlePasswordChange(event) {
+//         this.setState({
+//             ...this.state,
+//             password: event.target.value
+//         });
+//     }
+
+//     render() {
+//         const redirect = this.renderRedirect();
+//         return (
+//             <section>
+//                 {redirect}
+//                 <form onSubmit={this.login}>
+//                     <label>
+//                         <span>Username</span>
+//                         <input value={this.state.username} onChange={this.handleUsernameChange} type="text"></input>    
+//                     </label>         
+//                     <label>
+//                         <span>Password</span>
+//                         <input value={this.state.password} onChange={this.handlePasswordChange} type="text"></input>    
+//                     </label> 
+//                     <button type="submit">Login</button>          
+//                 </form>
+//             </section>
+//         );
+//     }
+
+//     login(event) {
+//         event.preventDefault();
+//         fetch(window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/api/admin/login", {
+//             method: "POST",
+//             headers:{"content-type": "application/json"},
+//             body: JSON.stringify({
+//                 username: this.state.username,
+//                 password: this.state.password
+//             })
+//         }).then(response => {
+//             if(response.status === 200) {
+//                 this.setState({
+//                     ...this.state,
+//                     redirect: true
+//                 });
+//             }
+//         });
+//     }
     
 
-    componentDidMount() {
-        document.title = "Admin Login - WhatsThisCrypto";
+//     componentDidMount() {
+//         document.title = "Admin Login - WhatsThisCrypto";
 
-        fetch(window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/api/admin/ping")
-            .then(response => {
-                if(response.status === 200 && this.state.redirect !== true) {
-                    this.setState({
-                        ...this.state,
-                        redirect: true
-                    });
-                }
-            });
+//         fetch(window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/api/admin/ping")
+//             .then(response => {
+//                 if(response.status === 200 && this.state.redirect !== true) {
+//                     this.setState({
+//                         ...this.state,
+//                         redirect: true
+//                     });
+//                 }
+//             });
 
-    }
+//     }
 
 
-}
+// }
 
 export default CoinDescription;

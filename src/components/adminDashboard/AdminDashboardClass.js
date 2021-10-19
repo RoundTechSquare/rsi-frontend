@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import logo from "../../logo.svg";
 import "./AdminDashboard.css";
 import fetch from "node-fetch";
@@ -15,8 +15,10 @@ import moment from "moment";
 
 const TIMEFRAMES = ["60min", "4h", "1d", "1w"];
 
-const AdminDashboard = (props) => {
-     const [state,setState] = useState({
+class AdminDashboard extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
       selectedTab: "60min",
       bellActive: false,
       redirect: false,
@@ -126,72 +128,119 @@ const AdminDashboard = (props) => {
       alertsCopy: [],
       showNotifications: false,
       selectedDate: new Date(),
-    });
+    };
+    this.updateFilters = this.updateFilters.bind(this);
+    this.updateFiltersResult = this.updateFiltersResult.bind(this);
+    this.clearFiltersResult = this.clearFiltersResult.bind(this);
+    this.updateAlertComment = this.updateAlertComment.bind(this);
+    this.handleMarketCapMinFilterChange =
+      this.handleMarketCapMinFilterChange.bind(this);
+    this.handleMarketCapMaxFilterChange =
+      this.handleMarketCapMaxFilterChange.bind(this);
 
-  const isValidAlert = (alert) => {
+    this.handleVolumeMinFilterChange =
+      this.handleVolumeMinFilterChange.bind(this);
+    this.handleVolumeMaxFilterChange =
+      this.handleVolumeMaxFilterChange.bind(this);
+    this.handleAlertCommentChange = this.handleAlertCommentChange.bind(this);
+    this.handlePriceMinFilterChange =
+      this.handlePriceMinFilterChange.bind(this);
+    this.handlePriceMaxFilterChange =
+      this.handlePriceMaxFilterChange.bind(this);
+    this.handleFloatMinFilterChange =
+      this.handleFloatMinFilterChange.bind(this);
+    this.handleFloatMaxFilterChange =
+      this.handleFloatMaxFilterChange.bind(this);
+
+    this.handleVolumeMinFilterChangeResult =
+      this.handleVolumeMinFilterChangeResult.bind(this);
+    this.handleVolumeMaxFilterChangeResult =
+      this.handleVolumeMaxFilterChangeResult.bind(this);
+
+    this.handleFloatMinFilterChangeResult =
+      this.handleFloatMinFilterChangeResult.bind(this);
+    this.handleFloatMaxFilterChangeResult =
+      this.handleFloatMaxFilterChangeResult.bind(this);
+
+    this.handlePriceMinFilterChangeResult =
+      this.handlePriceMinFilterChangeResult.bind(this);
+    this.handlePriceMaxFilterChangeResult =
+      this.handlePriceMaxFilterChangeResult.bind(this);
+
+    this.handlePriceCheckboxChangeResult =
+      this.handlePriceCheckboxChangeResult.bind(this);
+    this.handleVolumeCheckboxChangeResult =
+      this.handleVolumeCheckboxChangeResult.bind(this);
+
+    this.dateChanged = this.dateChanged.bind(this);
+    this.setSortedField = this.setSortedField.bind(this);
+    this.isValidAlert = this.isValidAlert.bind(this);
+  }
+
+  isValidAlert(alert) {
     if (!alert.float) {
       return false;
     }
-    let filters =  state.filters;
+    let filters = this.state.filters;
     if (
       parseInt(alert.float) <
-        parseInt(filters[ state.selectedTab].float.min) ||
+        parseInt(filters[this.state.selectedTab].float.min) ||
       parseInt(alert.float) >
-        parseInt(filters[ state.selectedTab].float.max)
+        parseInt(filters[this.state.selectedTab].float.max)
     ) {
       return false;
     }
     return true;
   }
 
-  const handlePriceCheckboxChangeResult =()=> {
-    let priceFilters =  state.filtersResult;
+  handlePriceCheckboxChangeResult() {
+    let priceFilters = this.state.filtersResult;
     priceFilters.price.on = !priceFilters.price.on;
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filtersResult: priceFilters,
     });
   }
 
-  const handleFloatCheckboxChangeResult =()=> {
-    let floatFilters =  state.filtersResult;
+  handleFloatCheckboxChangeResult() {
+    let floatFilters = this.state.filtersResult;
     floatFilters.float.on = !floatFilters.price.on;
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filtersResult: floatFilters,
     });
   }
 
-  const handleVolumeCheckboxChangeResult =()=> {
-    let volumeFilters =  state.filtersResult;
+  handleVolumeCheckboxChangeResult() {
+    let volumeFilters = this.state.filtersResult;
     volumeFilters.volume.on = !volumeFilters.price.on;
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filtersResult: volumeFilters,
     });
   }
 
-  const  dateChanged = (date) => {
-     setState({
-      ... state,
+  dateChanged(date) {
+    this.setState({
+      ...this.state,
       selectedDate: date,
     });
   }
 
-  const  clearFiltersResult= ()=> {
-     setState({
-      ... state,
-      history:  state.alertsCopy,
+  clearFiltersResult() {
+    this.setState({
+      ...this.state,
+      history: this.state.alertsCopy,
     });
   }
 
-  const setSortedField=(key)=> {
-    // const selectedDate =  state.selectedDate;
-    const formattedDate = moment( state.selectedDate).format('DD-MM-yyyy')
+  setSortedField(key) {
+    // const selectedDate = this.state.selectedDate;
+    const formattedDate = moment(this.state.selectedDate).format('DD-MM-yyyy')
 
 
-    let sorted =  state.history[ state.selectedTab][formattedDate];
-    let history =  state.history;
+    let sorted = this.state.history[this.state.selectedTab][formattedDate];
+    let history = this.state.history;
     sorted.sort((a, b) => {
       if (a[key]) {
         if (b[key])  
@@ -209,18 +258,18 @@ const AdminDashboard = (props) => {
       }
       return 0;
     });
-    if ( state.sortDescending) {
+    if (this.state.sortDescending) {
       sorted.reverse();
     }
-     state.history[ state.selectedTab][formattedDate] = sorted;
-     setState({
-      ... state,
+    this.state.history[this.state.selectedTab][formattedDate] = sorted;
+    this.setState({
+      ...this.state,
       history,
-      sortDescending: ! state.sortDescending,
+      sortDescending: !this.state.sortDescending,
     });
   }
 
-  const updateAlertComment =(timeframe, date, ticker, alertDate, index) => {
+  updateAlertComment(timeframe, date, ticker, alertDate, index) {
     fetch(
       window.location.protocol +
         "//" +
@@ -237,182 +286,182 @@ const AdminDashboard = (props) => {
         alertDate,
       {
         method: "post",
-        body: JSON.stringify( state.history[timeframe][date][index]),
+        body: JSON.stringify(this.state.history[timeframe][date][index]),
         headers: { "Content-Type": "application/json" },
       }
     );
   }
 
-  const handleAlertCommentChange =(timeframe, date, index, value) =>{
-    let state =  state;
+  handleAlertCommentChange(timeframe, date, index, value) {
+    let state = this.state;
     state.history[timeframe][date][index].comment = value;
-     setState(state);
+    this.setState(state);
   }
-  const handleMarketCapMinFilterChange=(value) =>{
-    let filters =  state.filters;
+  handleMarketCapMinFilterChange(value) {
+    let filters = this.state.filters;
     if (value.target.value === "") {
       value.target.value = "0";
     }
-    filters[ state.selectedTab].marketCap.min = parseInt(
+    filters[this.state.selectedTab].marketCap.min = parseInt(
       value.target.value
     );
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filters,
     });
   }
-  const handleMarketCapMaxFilterChange = (value)=> {
-    let filters =  state.filters;
+  handleMarketCapMaxFilterChange(value) {
+    let filters = this.state.filters;
     if (value.target.value === "") {
       value.target.value = "0";
     }
-    filters[ state.selectedTab].marketCap.max = parseInt(
+    filters[this.state.selectedTab].marketCap.max = parseInt(
       value.target.value
     );
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filters,
     });
   }
 
-  const handleVolumeMinFilterChange=(value)=> {
-    let filters =  state.filters;
+  handleVolumeMinFilterChange(value) {
+    let filters = this.state.filters;
     if (value.target.value === "") {
       value.target.value = "0";
     }
-    filters[ state.selectedTab].volume.min = parseInt(value.target.value);
-     setState({
-      ... state,
+    filters[this.state.selectedTab].volume.min = parseInt(value.target.value);
+    this.setState({
+      ...this.state,
       filters,
     });
   }
-  const handleVolumeMaxFilterChange =(value)=> {
-    let filters =  state.filters;
+  handleVolumeMaxFilterChange(value) {
+    let filters = this.state.filters;
     if (value.target.value === "") {
       value.target.value = "0";
     }
-    filters[ state.selectedTab].volume.max = parseInt(value.target.value);
-     setState({
-      ... state,
-      filters,
-    });
-  }
-
-  const handlePriceMinFilterChange =(value) =>{
-    let filters =  state.filters;
-    if (value.target.value === "") {
-      value.target.value = "0";
-    }
-    filters[ state.selectedTab].price.min = parseInt(value.target.value);
-     setState({
-      ... state,
-      filters,
-    });
-  }
-  const handlePriceMaxFilterChange = (value) =>{
-    let filters =  state.filters;
-    if (value.target.value === "") {
-      value.target.value = "0";
-    }
-    filters[ state.selectedTab].price.max = parseInt(value.target.value);
-     setState({
-      ... state,
+    filters[this.state.selectedTab].volume.max = parseInt(value.target.value);
+    this.setState({
+      ...this.state,
       filters,
     });
   }
 
-  const handleFloatMinFilterChange =(value)=> {
-    let filters =  state.filters;
+  handlePriceMinFilterChange(value) {
+    let filters = this.state.filters;
     if (value.target.value === "") {
       value.target.value = "0";
     }
-    filters[ state.selectedTab].float.min = parseInt(value.target.value);
-     setState({
-      ... state,
+    filters[this.state.selectedTab].price.min = parseInt(value.target.value);
+    this.setState({
+      ...this.state,
       filters,
     });
   }
- const handleFloatMaxFilterChange =(value)=> {
-    let filters =  state.filters;
+  handlePriceMaxFilterChange(value) {
+    let filters = this.state.filters;
     if (value.target.value === "") {
       value.target.value = "0";
     }
-    filters[ state.selectedTab].float.max = parseInt(value.target.value);
-     setState({
-      ... state,
+    filters[this.state.selectedTab].price.max = parseInt(value.target.value);
+    this.setState({
+      ...this.state,
       filters,
     });
   }
 
-  const handleFloatMinFilterChangeResult = (value)=>{
-    let filtersResult =  state.filtersResult;
+  handleFloatMinFilterChange(value) {
+    let filters = this.state.filters;
+    if (value.target.value === "") {
+      value.target.value = "0";
+    }
+    filters[this.state.selectedTab].float.min = parseInt(value.target.value);
+    this.setState({
+      ...this.state,
+      filters,
+    });
+  }
+  handleFloatMaxFilterChange(value) {
+    let filters = this.state.filters;
+    if (value.target.value === "") {
+      value.target.value = "0";
+    }
+    filters[this.state.selectedTab].float.max = parseInt(value.target.value);
+    this.setState({
+      ...this.state,
+      filters,
+    });
+  }
+
+  handleFloatMinFilterChangeResult(value) {
+    let filtersResult = this.state.filtersResult;
     if (value.target.value === "") {
       value.target.value = "0";
     }
     filtersResult.float.min = parseInt(value.target.value);
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filtersResult,
     });
   }
-  const handleFloatMaxFilterChangeResult=(value)=>{
-    let filtersResult =  state.filtersResult;
+  handleFloatMaxFilterChangeResult(value) {
+    let filtersResult = this.state.filtersResult;
     if (value.target.value === "") {
       value.target.value = "0";
     }
     filtersResult.float.max = parseInt(value.target.value);
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filtersResult,
     });
   }
-  const handleVolumeMinFilterChangeResult =(value)=> {
-    let filtersResult =  state.filtersResult;
+  handleVolumeMinFilterChangeResult(value) {
+    let filtersResult = this.state.filtersResult;
     if (value.target.value === "") {
       value.target.value = "0";
     }
     filtersResult.volume.min = parseInt(value.target.value);
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filtersResult,
     });
   }
-  const handleVolumeMaxFilterChangeResult=(value)=> {
-    let filtersResult =  state.filtersResult;
+  handleVolumeMaxFilterChangeResult(value) {
+    let filtersResult = this.state.filtersResult;
     if (value.target.value === "") {
       value.target.value = "0";
     }
     filtersResult.volume.max = parseInt(value.target.value);
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filtersResult,
     });
   }
 
-  const handlePriceMinFilterChangeResult =(value)=> {
-    let filtersResult =  state.filtersResult;
+  handlePriceMinFilterChangeResult(value) {
+    let filtersResult = this.state.filtersResult;
     if (value.target.value === "") {
       value.target.value = "0";
     }
     filtersResult.price.min = parseInt(value.target.value);
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filtersResult,
     });
   }
-  const handlePriceMaxFilterChangeResult =(value)=> {
-    let filtersResult =  state.filtersResult;
+  handlePriceMaxFilterChangeResult(value) {
+    let filtersResult = this.state.filtersResult;
     if (value.target.value === "") {
       value.target.value = "0";
     }
     filtersResult.price.max = parseInt(value.target.value);
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       filtersResult,
     });
   }
 
-  const updateFilters =(event) =>{
+  updateFilters(event) {
     event.preventDefault();
     fetch(
       window.location.protocol +
@@ -421,19 +470,19 @@ const AdminDashboard = (props) => {
         ":" +
         window.location.port +
         "/api/admin/scanner/filters/update?timeframe=" +
-         state.selectedTab,
+        this.state.selectedTab,
       {
         method: "post",
-        body: JSON.stringify( state.filters[ state.selectedTab]),
+        body: JSON.stringify(this.state.filters[this.state.selectedTab]),
         headers: { "Content-Type": "application/json" },
       }
     );
   }
 
-  const updateFiltersResult=(event)=> {
+  updateFiltersResult(event) {
     event.preventDefault();
-    const alerts =  state.alertsCopy;
-    let filters =  state.filtersResult;
+    const alerts = this.state.alertsCopy;
+    let filters = this.state.filtersResult;
     let newAlerts = {};
 
     for (let i = 0; i < Object.keys(alerts).length; i++) {    
@@ -458,132 +507,24 @@ const AdminDashboard = (props) => {
         newAlerts[Object.keys(alerts)[i]][Object.keys(timeframe)[y]] = date;
       }
     }
-     setState({
-      ... state,
+    this.setState({
+      ...this.state,
       alertsCopy: alerts,
       history: newAlerts,
     });
   }
 
-  const renderRedirect = () => {
-    if ( state.redirect) {
+  renderRedirect() {
+    if (this.state.redirect) {
       return <Redirect to="/login" />;
     }
   }
-useEffect(()=>{
-  document.title = "Admin Dashboard - WhatsThisCrypto";
-  const socket = socketIOClient(
-    "ws://" + window.location.hostname + ":3000",
-    {
-      query: {
-        token: Cookies.get("token"),
-      },
-      transport: ["websocket"],
-    }
-  );
-  socket.on("connect", () => {
-    console.log("connected");
-  });
-  socket.on("message", (alert) => {
-    let history =  state.history;
-    let formattedDate = new Date();
-    formattedDate =
-      formattedDate.getDate() +
-      "-" +
-      parseInt(formattedDate.getMonth() + 1) +
-      "-" +
-      formattedDate.getFullYear();
-    if (!history[alert.timeframe][formattedDate])
-      history[alert.timeframe][formattedDate] = [];
-    history[alert.timeframe][formattedDate].push({
-      ticker: alert.ticker,
-      type: alert.type,
-      exchange: alert.exchange,
-      date: alert.date,
-      comment: "",
-    });
-    let alerts =  state.alerts;
-    alerts.push({
-      ticker: alert.ticker,
-      timeframe: alert.timeframe,
-    });
 
-     setState({
-      ... state,
-      history,
-      alertsCopy: history,
-      bellActive: true,
-      alerts,
-    });
-    setTimeout(() => {
-       updateFiltersResult();
-    }, 1000);
-    setTimeout(() => {
-       setState({
-        ... state,
-        bellActive: false,
-      });
-    }, 5000);
-  });
-  // fetch(
-  //   window.location.protocol +
-  //     '//' +
-  //     window.location.hostname +
-  //     ':' +
-  //     window.location.port +
-  //     '/api/admin/ping'
-  // ).then((response) => {
-  //   if (response.status === 401 &&  state.redirect !== true) {
-  //      setState({
-  //       ... state,
-  //       redirect: true,
-  //     });
-  //   } else if (response.status === 200) {
-  //     fetch(
-  //       window.location.protocol +
-  //         '//' +
-  //         window.location.hostname +
-  //         ':' +
-  //         window.location.port +
-  //         '/api/admin/scanner/filters'
-  //     )
-  //       .then((result) => result.json())
-  //       .then((result) => {
-  //         console.log(result, 'RESULT');
-  //          setState({
-  //           ... state,
-  //           verified: true,
-  //           filters: result,
-  //         });
-  //       });
-  //     fetch(
-  //       window.location.protocol +
-  //         '//' +
-  //         window.location.hostname +
-  //         ':' +
-  //         window.location.port +
-  //         '/api/admin/scanner/history'
-  //     )
-  //       .then((result) => result.json())
-  //       .then((result) => {
-  //         console.log('test');
-  //         console.log(result);
-  //          setState({
-  //           ... state,
-  //           history: result,
-  //           alertsCopy: result,
-  //         });
-  //       });
-  //   }
-  // });
-   getData("60min");
-  console.log("state",  state);
-},[''])
-  const  getData = async(params) =>{
+  async getData(params) {
     const data = await fetch(`http://iodigitalbot.com/api/data?tf=${params}`);
     const result = await data.json();
-    // console.log(result,  state.history);
-    //   gives an object with dates as keys
+    // console.log(result, this.state.history);
+    // this gives an object with dates as keys
     const groups = result.reduce((groups, game) => {
       // console.log(groups,game)
       let date = moment(game.date).format("DD-MM-yyyy");
@@ -608,21 +549,22 @@ useEffect(()=>{
         updatedHistory[`${obj.date}`] = obj.data
       }
     })
-     state.history[params] = updatedHistory;
-     setState({
-      ... state,
-      alerts:  state.history,
-      alertsCopy:  state.history,
+    this.state.history[params] = updatedHistory;
+    this.setState({
+      ...this.state,
+      alerts: this.state.history,
+      alertsCopy: this.state.history,
 
     });
   }
-    const redirect =  renderRedirect();
+  render() {
+    const redirect = this.renderRedirect();
     let notificationsList;
-    if ( state.showNotifications) {
+    if (this.state.showNotifications) {
       notificationsList = (
         <section className="notificationsList">
           <h2>Notifications:</h2>
-          { state.alerts.map((alert, index) => {
+          {this.state.alerts.map((alert, index) => {
             return (
               <div key={index}>
                 <p>
@@ -630,10 +572,10 @@ useEffect(()=>{
                 </p>
                 <button
                   onClick={() => {
-                    let alerts =  state.alerts;
+                    let alerts = this.state.alerts;
                     alerts.splice(index, 1);
-                     setState({
-                      ... state,
+                    this.setState({
+                      ...this.state,
                       alerts,
                     });
                   }}
@@ -654,40 +596,40 @@ useEffect(()=>{
           <BellIcon
             className="bellIcon"
             // onClick={() => {
-            //    setState({
-            //     ... state,
-            //     showNotifications: ! state.showNotifications,
+            //   this.setState({
+            //     ...this.state,
+            //     showNotifications: !this.state.showNotifications,
             //   });
             // }}
             width="40"
-            active={ state.bellActive}
-            animate={ state.bellActive}
+            active={this.state.bellActive}
+            animate={this.state.bellActive}
           />
           {notificationsList}
         </div>
-        <form onSubmit={ updateFilters}>
+        <form onSubmit={this.updateFilters}>
           <div className="allFiltersContainer">
             <section className="filtersSection">
               <label>
                 <span>Min Market Captialisation</span>
                 <input
                   type="number"
-                  max={ state.filters[ state.selectedTab].marketCap.max}
+                  max={this.state.filters[this.state.selectedTab].marketCap.max}
                   value={
-                     state.filters[ state.selectedTab].marketCap.min
+                    this.state.filters[this.state.selectedTab].marketCap.min
                   }
-                  onChange={ handleMarketCapMinFilterChange}
+                  onChange={this.handleMarketCapMinFilterChange}
                 ></input>
               </label>
               <label>
                 <span>Max Market Captialisation</span>
                 <input
                   type="number"
-                  min={ state.filters[ state.selectedTab].marketCap.min}
+                  min={this.state.filters[this.state.selectedTab].marketCap.min}
                   value={
-                     state.filters[ state.selectedTab].marketCap.max
+                    this.state.filters[this.state.selectedTab].marketCap.max
                   }
-                  onChange={ handleMarketCapMaxFilterChange}
+                  onChange={this.handleMarketCapMaxFilterChange}
                 ></input>
               </label>
             </section>
@@ -697,18 +639,18 @@ useEffect(()=>{
                 <span>Min Average Volume</span>
                 <input
                   type="number"
-                  max={ state.filters[ state.selectedTab].volume.max}
-                  value={ state.filters[ state.selectedTab].volume.min}
-                  onChange={ handleVolumeMinFilterChange}
+                  max={this.state.filters[this.state.selectedTab].volume.max}
+                  value={this.state.filters[this.state.selectedTab].volume.min}
+                  onChange={this.handleVolumeMinFilterChange}
                 ></input>
               </label>
               <label>
                 <span>Max Average Volume</span>
                 <input
                   type="number"
-                  min={ state.filters[ state.selectedTab].volume.min}
-                  value={ state.filters[ state.selectedTab].volume.max}
-                  onChange={ handleVolumeMaxFilterChange}
+                  min={this.state.filters[this.state.selectedTab].volume.min}
+                  value={this.state.filters[this.state.selectedTab].volume.max}
+                  onChange={this.handleVolumeMaxFilterChange}
                 ></input>
               </label>
             </section>
@@ -718,18 +660,18 @@ useEffect(()=>{
                 <span>Min Price</span>
                 <input
                   type="number"
-                  max={ state.filters[ state.selectedTab].price.max}
-                  value={ state.filters[ state.selectedTab].price.min}
-                  onChange={ handlePriceMinFilterChange}
+                  max={this.state.filters[this.state.selectedTab].price.max}
+                  value={this.state.filters[this.state.selectedTab].price.min}
+                  onChange={this.handlePriceMinFilterChange}
                 ></input>
               </label>
               <label>
                 <span>Max Price</span>
                 <input
                   type="number"
-                  min={ state.filters[ state.selectedTab].price.min}
-                  value={ state.filters[ state.selectedTab].price.max}
-                  onChange={ handlePriceMaxFilterChange}
+                  min={this.state.filters[this.state.selectedTab].price.min}
+                  value={this.state.filters[this.state.selectedTab].price.max}
+                  onChange={this.handlePriceMaxFilterChange}
                 ></input>
               </label>
             </section>
@@ -739,18 +681,18 @@ useEffect(()=>{
                 <span>Min Float</span>
                 <input
                   type="number"
-                  max={ state.filters[ state.selectedTab].float?.max}
-                  value={ state.filters[ state.selectedTab].float?.min}
-                  onChange={ handleFloatMinFilterChange}
+                  max={this.state.filters[this.state.selectedTab].float?.max}
+                  value={this.state.filters[this.state.selectedTab].float?.min}
+                  onChange={this.handleFloatMinFilterChange}
                 ></input>
               </label>
               <label>
                 <span>Max Float</span>
                 <input
                   type="number"
-                  min={ state.filters[ state.selectedTab].float?.min}
-                  value={ state.filters[ state.selectedTab].float?.max}
-                  onChange={ handleFloatMaxFilterChange}
+                  min={this.state.filters[this.state.selectedTab].float?.min}
+                  value={this.state.filters[this.state.selectedTab].float?.max}
+                  onChange={this.handleFloatMaxFilterChange}
                 ></input>
               </label>
             </section>
@@ -760,32 +702,32 @@ useEffect(()=>{
             Update filters
           </button>
         </form>
-        <form onSubmit={ updateFiltersResult}>
+        <form onSubmit={this.updateFiltersResult}>
           <div className="allFiltersContainer">
             <section className="filtersSection">
               <label>
                 <span>Enable filtering alerts by float</span>
                 <input
                   type="checkbox"
-                  onClick={ handleVolumeCheckboxChangeResult}
+                  onClick={this.handleVolumeCheckboxChangeResult}
                 />
               </label>
               <label>
                 <span>Min Float</span>
                 <input
                   type="number"
-                  max={ state.filtersResult.float.max}
-                  value={ state.filtersResult.float.min}
-                  onChange={ handleFloatMinFilterChangeResult}
+                  max={this.state.filtersResult.float.max}
+                  value={this.state.filtersResult.float.min}
+                  onChange={this.handleFloatMinFilterChangeResult}
                 ></input>
               </label>
               <label>
                 <span>Max Float</span>
                 <input
                   type="number"
-                  min={ state.filtersResult.float.min}
-                  value={ state.filtersResult.float.max}
-                  onChange={ handleFloatMaxFilterChangeResult}
+                  min={this.state.filtersResult.float.min}
+                  value={this.state.filtersResult.float.max}
+                  onChange={this.handleFloatMaxFilterChangeResult}
                 ></input>
               </label>
             </section>
@@ -794,25 +736,25 @@ useEffect(()=>{
                 <span>Enable filtering alerts by volume</span>
                 <input
                   type="checkbox"
-                  onClick={ handleVolumeCheckboxChangeResult}
+                  onClick={this.handleVolumeCheckboxChangeResult}
                 />
               </label>
               <label>
                 <span>Min Average Volume</span>
                 <input
                   type="number"
-                  max={ state.filtersResult.volume.max}
-                  value={ state.filtersResult.volume.min}
-                  onChange={ handleVolumeMinFilterChangeResult}
+                  max={this.state.filtersResult.volume.max}
+                  value={this.state.filtersResult.volume.min}
+                  onChange={this.handleVolumeMinFilterChangeResult}
                 ></input>
               </label>
               <label>
                 <span>Max Average Volume</span>
                 <input
                   type="number"
-                  min={ state.filtersResult.volume.min}
-                  value={ state.filtersResult.volume.max}
-                  onChange={ handleVolumeMaxFilterChangeResult}
+                  min={this.state.filtersResult.volume.min}
+                  value={this.state.filtersResult.volume.max}
+                  onChange={this.handleVolumeMaxFilterChangeResult}
                 ></input>
               </label>
             </section>
@@ -822,25 +764,25 @@ useEffect(()=>{
                 <span>Enable filtering alerts by price</span>
                 <input
                   type="checkbox"
-                  onClick={ handlePriceCheckboxChangeResult}
+                  onClick={this.handlePriceCheckboxChangeResult}
                 />
               </label>
               <label>
                 <span>Min Price</span>
                 <input
                   type="number"
-                  max={ state.filtersResult.price.max}
-                  value={ state.filtersResult.price.min}
-                  onChange={ handlePriceMinFilterChangeResult}
+                  max={this.state.filtersResult.price.max}
+                  value={this.state.filtersResult.price.min}
+                  onChange={this.handlePriceMinFilterChangeResult}
                 ></input>
               </label>
               <label>
                 <span>Max Price</span>
                 <input
                   type="number"
-                  min={ state.filtersResult.price.min}
-                  value={ state.filtersResult.price.max}
-                  onChange={ handlePriceMaxFilterChangeResult}
+                  min={this.state.filtersResult.price.min}
+                  value={this.state.filtersResult.price.max}
+                  onChange={this.handlePriceMaxFilterChangeResult}
                 ></input>
               </label>
             </section>
@@ -853,7 +795,7 @@ useEffect(()=>{
           <button
             type="reset"
             className="updateFiltersButton"
-            onClick={ clearFiltersResult}
+            onClick={this.clearFiltersResult}
           >
             Clear alerts filters
           </button>
@@ -861,23 +803,23 @@ useEffect(()=>{
         <h1>Results filter</h1>
         <section>
           <DatePicker
-            selected={ state.selectedDate}
-            onChange={ dateChanged}
+            selected={this.state.selectedDate}
+            onChange={this.dateChanged}
           />
           <Tabs
             onSelect={(tab) => {
-               setState({
-                ... state,
-                selectedTab: Object.keys( state.history)[tab],
+              this.setState({
+                ...this.state,
+                selectedTab: Object.keys(this.state.history)[tab],
               });
             }}
           >
             <TabList>
-              {Object.keys( state.history).map((timeframe) => {
+              {Object.keys(this.state.history).map((timeframe) => {
                 return (
                   <Tab
                     onClick={() => {
-                       getData(timeframe);
+                      this.getData(timeframe);
                     }}
                     key={timeframe}
                   >
@@ -887,9 +829,9 @@ useEffect(()=>{
               })}
             </TabList>
 
-            {Object.values( state.history).map(
+            {Object.values(this.state.history).map(
               (objects, timeframeIndex) => {
-                const formattedDate = moment( state.selectedDate).format('DD-MM-yyyy')
+                const formattedDate = moment(this.state.selectedDate).format('DD-MM-yyyy')
                 if (!objects[formattedDate]) {
                   return (
                     <TabPanel key={timeframeIndex}>
@@ -905,7 +847,7 @@ useEffect(()=>{
                           <th>
                             <button
                               type="button"
-                              onClick={() =>  setSortedField("date")}
+                              onClick={() => this.setSortedField("date")}
                             >
                               Time
                             </button>
@@ -913,7 +855,7 @@ useEffect(()=>{
                           <th>
                             <button
                               type="button"
-                              onClick={() =>  setSortedField("type")}
+                              onClick={() => this.setSortedField("type")}
                             >
                               Signal
                             </button>
@@ -921,7 +863,7 @@ useEffect(()=>{
                           <th>
                             <button
                               type="button"
-                              onClick={() =>  setSortedField("ticker")}
+                              onClick={() => this.setSortedField("ticker")}
                             >
                               Symbol
                             </button>
@@ -929,7 +871,7 @@ useEffect(()=>{
                           <th>
                             <button
                               type="button"
-                              onClick={() =>  setSortedField("price")}
+                              onClick={() => this.setSortedField("price")}
                             >
                               Price
                             </button>
@@ -938,7 +880,7 @@ useEffect(()=>{
                             <button
                               type="button"
                               onClick={() =>
-                                 setSortedField("averageVolume")
+                                this.setSortedField("averageVolume")
                               }
                             >
                               Volume
@@ -947,13 +889,13 @@ useEffect(()=>{
                           <th>
                             <button
                               type="button"
-                              onClick={() =>  setSortedField("date")}
+                              onClick={() => this.setSortedField("date")}
                             >
                               Float
                             </button>
                           </th>
                         </tr>
-                        {/* {JSON.stringify( state)} */}
+                        {/* {JSON.stringify(this.state)} */}
                       </thead>
                       {/* <div>aas</div> */}
                       <tbody>
@@ -963,7 +905,7 @@ useEffect(()=>{
                             formattedAlertTime.getHours() +
                             ":" +
                             formattedAlertTime.getMinutes();
-                          const timeframe = Object.keys( state.history)[
+                          const timeframe = Object.keys(this.state.history)[
                             timeframeIndex
                           ];
 
@@ -1008,5 +950,116 @@ useEffect(()=>{
       </section>
     );
   }
+
+  componentDidMount() {
+    document.title = "Admin Dashboard - WhatsThisCrypto";
+    const socket = socketIOClient(
+      "ws://" + window.location.hostname + ":3000",
+      {
+        query: {
+          token: Cookies.get("token"),
+        },
+        transport: ["websocket"],
+      }
+    );
+    socket.on("connect", () => {
+      console.log("connected");
+    });
+    socket.on("message", (alert) => {
+      let history = this.state.history;
+      let formattedDate = new Date();
+      formattedDate =
+        formattedDate.getDate() +
+        "-" +
+        parseInt(formattedDate.getMonth() + 1) +
+        "-" +
+        formattedDate.getFullYear();
+      if (!history[alert.timeframe][formattedDate])
+        history[alert.timeframe][formattedDate] = [];
+      history[alert.timeframe][formattedDate].push({
+        ticker: alert.ticker,
+        type: alert.type,
+        exchange: alert.exchange,
+        date: alert.date,
+        comment: "",
+      });
+      let alerts = this.state.alerts;
+      alerts.push({
+        ticker: alert.ticker,
+        timeframe: alert.timeframe,
+      });
+
+      this.setState({
+        ...this.state,
+        history,
+        alertsCopy: history,
+        bellActive: true,
+        alerts,
+      });
+      setTimeout(() => {
+        this.updateFiltersResult();
+      }, 1000);
+      setTimeout(() => {
+        this.setState({
+          ...this.state,
+          bellActive: false,
+        });
+      }, 5000);
+    });
+    // fetch(
+    //   window.location.protocol +
+    //     '//' +
+    //     window.location.hostname +
+    //     ':' +
+    //     window.location.port +
+    //     '/api/admin/ping'
+    // ).then((response) => {
+    //   if (response.status === 401 && this.state.redirect !== true) {
+    //     this.setState({
+    //       ...this.state,
+    //       redirect: true,
+    //     });
+    //   } else if (response.status === 200) {
+    //     fetch(
+    //       window.location.protocol +
+    //         '//' +
+    //         window.location.hostname +
+    //         ':' +
+    //         window.location.port +
+    //         '/api/admin/scanner/filters'
+    //     )
+    //       .then((result) => result.json())
+    //       .then((result) => {
+    //         console.log(result, 'RESULT');
+    //         this.setState({
+    //           ...this.state,
+    //           verified: true,
+    //           filters: result,
+    //         });
+    //       });
+    //     fetch(
+    //       window.location.protocol +
+    //         '//' +
+    //         window.location.hostname +
+    //         ':' +
+    //         window.location.port +
+    //         '/api/admin/scanner/history'
+    //     )
+    //       .then((result) => result.json())
+    //       .then((result) => {
+    //         console.log('test');
+    //         console.log(result);
+    //         this.setState({
+    //           ...this.state,
+    //           history: result,
+    //           alertsCopy: result,
+    //         });
+    //       });
+    //   }
+    // });
+    this.getData("60min");
+    console.log("state", this.state);
+  }
+}
 
 export default AdminDashboard;
